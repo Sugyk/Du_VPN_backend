@@ -1,7 +1,6 @@
 package configs
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -17,21 +16,30 @@ type DatabaseConfig struct {
 	SSLMode  string
 }
 
-func NewDbConfigs() (DatabaseConfig, error) {
+type OutlineAPIConfig struct {
+	API_URL string
+}
+
+func LoadConfigs() error {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("configs")
 	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			// Config file not found; ignore error if desired
-			fmt.Println("NOT OK1")
-		} else {
-			// Config file was found but another error was produced
-			fmt.Println("NOT OK2")
-		}
+		return err
 	}
-
 	godotenv.Load(".env")
+
+	return nil
+}
+
+func NewOutlineConfigs() OutlineAPIConfig {
+	outline_cnf := OutlineAPIConfig{
+		API_URL: os.Getenv("API_URL"),
+	}
+	return outline_cnf
+}
+
+func NewDbConfigs() DatabaseConfig {
 	cnf := DatabaseConfig{
 		Host:     viper.GetString("db.host"),
 		Port:     viper.GetString("db.port"),
@@ -40,5 +48,5 @@ func NewDbConfigs() (DatabaseConfig, error) {
 		SSLMode:  viper.GetString("db.sslmode"),
 		Password: os.Getenv("DB_PASSWORD"),
 	}
-	return cnf, nil
+	return cnf
 }
