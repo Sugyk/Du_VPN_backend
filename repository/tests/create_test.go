@@ -26,7 +26,7 @@ func TestCreateUser(t *testing.T) {
 	}
 
 	// 3. Expect the query
-	mock.ExpectExec(`INSERT INTO "Users" \(telegram_id, id_admin\) VALUES \(\$1, \$2\)`).
+	mock.ExpectExec(`INSERT INTO "Users" \(telegram_id, is_admin\) VALUES \(\$1, \$2\)`).
 		WithArgs(params.Telegram_id, params.Is_admin).
 		WillReturnResult(sqlmock.NewResult(1, 1)) // simulate 1 row inserted
 
