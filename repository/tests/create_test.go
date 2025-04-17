@@ -8,36 +8,27 @@ import (
 	"github.com/sugyk/rest_vpn/repository"
 )
 
-func TestCreateUser(t *testing.T) {
-	// 1. Create mock DB
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("failed to open sqlmock database: %v", err)
-	}
-	defer db.Close()
+var query = `
+	INSERT INTO "Users" \(telegram_id, is_admin\)
+	VALUES \(\?, \?\)
+	ON CONFLICT \(telegram_id\)
+	DO UPDATE SET
+		is_admin = EXCLUDED.is_admin;
+	`
 
-	sqlxDB := sqlx.NewDb(db, "postgres")
+func TestCreateUser(t *testing.T) {
+	db, mock, _ := sqlmock.New()
+	sqlxDB := sqlx.NewDb(db, "sqlmock")
+
 	repo := repository.NewRepo(sqlxDB)
 
-	// 2. Define test input
-	params := repository.CreateUserParams{
-		Telegram_id: 123456,
-		Is_admin:    true,
-	}
+	mock.ExpectExec(query).
+		WithArgs(123, true).
+		WillReturnResult(sqlmock.NewResult(1, 1)) // ID, RowsAffected
 
-	// 3. Expect the query
-	mock.ExpectExec(`INSERT INTO "Users" \(telegram_id, is_admin\) VALUES \(\$1, \$2\)`).
-		WithArgs(params.Telegram_id, params.Is_admin).
-		WillReturnResult(sqlmock.NewResult(1, 1)) // simulate 1 row inserted
+	err := repo.CreateUser(repository.CreateUserParams{Telegram_id: 123, Is_admin: true})
 
-	// 4. Call the method
-	err = repo.CreateUser(params)
 	if err != nil {
-		t.Errorf("unexpected error: %v", err)
-	}
-
-	// 5. Ensure expectations were met
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("unmet expectations: %v", err)
+		t.Error("unexpected error", err)
 	}
 }

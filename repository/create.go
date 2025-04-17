@@ -8,7 +8,13 @@ type CreateUserParams struct {
 func (r *Repository) CreateUser(params CreateUserParams) error {
 	// Create the users in db
 
-	query := `INSERT INTO "Users" (telegram_id, is_admin) VALUES (:telegram_id, :is_admin)`
+	query := `
+	INSERT INTO "Users" (telegram_id, is_admin)
+	VALUES (:telegram_id, :is_admin)
+	ON CONFLICT (telegram_id)
+	DO UPDATE SET
+		is_admin = EXCLUDED.is_admin;
+	`
 
 	_, err := r.db.NamedExec(query, params)
 
