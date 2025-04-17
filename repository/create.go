@@ -24,3 +24,25 @@ func (r *Repository) CreateUser(params CreateUserParams) error {
 
 	return nil
 }
+
+type CreateKeyParams struct {
+	Telegram_id int    `db:"user_id"`
+	AccessUrl   string `db:"key_value"`
+}
+
+func (r *Repository) CreateKey(params CreateKeyParams) error {
+	// Create the key for user
+
+	query := `
+	INSERT INTO "AccessKeys" (user_id, key_value)
+	VALUES (:user_id, :key_value)
+	`
+
+	_, err := r.db.NamedExec(query, params)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
