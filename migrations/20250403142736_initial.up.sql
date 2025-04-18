@@ -4,6 +4,7 @@ CREATE TABLE "AccessKeys" (
 	"label" TEXT,
 	"user_id" INTEGER,
 	"created_at" TIME,
+	"exprires_at" TIME,
 	PRIMARY KEY("id")
 );
 
