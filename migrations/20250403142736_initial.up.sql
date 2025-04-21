@@ -3,7 +3,7 @@ CREATE TABLE "AccessKeys" (
 	"key_value" TEXT NOT NULL,
 	"user_id" INTEGER,
 	"created_at" TIMESTAMPTZ DEFAULT NOW(),
-	"exprires_at" TIMESTAMPTZ,
+	"expires_at" TIMESTAMPTZ,
 	PRIMARY KEY("id")
 );
 
