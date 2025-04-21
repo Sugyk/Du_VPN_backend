@@ -25,17 +25,19 @@ func (r *Repository) CreateUser(params CreateUserParams) error {
 	return nil
 }
 
+// TODO repo handler to create keys
 type CreateKeyParams struct {
-	Telegram_id int    `db:"user_id"`
-	AccessUrl   string `db:"key_value"`
+	Telegram_id   int    `db:"user_id"`
+	AccessUrl     string `db:"key_value"`
+	Expire_months string `db:"expires_at"`
 }
 
 func (r *Repository) CreateKey(params CreateKeyParams) error {
 	// Create the key for user
 
 	query := `
-	INSERT INTO "AccessKeys" (user_id, key_value)
-	VALUES (:user_id, :key_value)
+	INSERT INTO "AccessKeys" (user_id, key_value, expires_at)
+	VALUES (:user_id, :key_value, :expires_at)
 	`
 
 	_, err := r.db.NamedExec(query, params)
