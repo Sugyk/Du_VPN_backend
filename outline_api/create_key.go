@@ -1,6 +1,7 @@
 package outline_api
 
 import (
+	"bytes"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -26,7 +27,7 @@ func (o *OutlineAPI) CreateKey() (CreateKeyResponse, error) {
 	}
 
 	// Send the request of creating key
-	resp, err := httpClient.Get(o.API_URL + "/access-keys")
+	resp, err := httpClient.Post(o.API_URL+"/access-keys", "application/json", bytes.NewReader([]byte{}))
 
 	if err != nil {
 		return CreateKeyResponse{}, err
