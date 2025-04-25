@@ -2,6 +2,7 @@ package repository_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
@@ -47,15 +48,16 @@ func TestCreateKey(t *testing.T) {
 	repo := repository.NewRepo(sqlxDB)
 
 	// Define mock execution
+	current_time := time.Now()
 	mock.ExpectExec(createKeyQuery).
-		WithArgs(123, "ss://asdfasdfhasdad", "3").
+		WithArgs(123, "ss://asdfasdfhasdad", current_time).
 		WillReturnResult(sqlmock.NewResult(1, 1)) // ID, RowsAffected
 
 	// Try tested function
 	err := repo.CreateKey(repository.CreateKeyParams{
 		Telegram_id:   123,
 		AccessUrl:     "ss://asdfasdfhasdad",
-		Expire_months: "3",
+		Expire_months: current_time,
 	},
 	)
 

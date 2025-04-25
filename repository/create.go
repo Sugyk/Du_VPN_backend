@@ -1,5 +1,7 @@
 package repository
 
+import "time"
+
 type CreateUserParams struct {
 	Telegram_id int  `db:"telegram_id"`
 	Is_admin    bool `db:"is_admin"`
@@ -27,9 +29,9 @@ func (r *Repository) CreateUser(params CreateUserParams) error {
 
 // TODO repo handler to create keys
 type CreateKeyParams struct {
-	Telegram_id   int    `db:"user_id"`
-	AccessUrl     string `db:"key_value"`
-	Expire_months string `db:"expires_at"`
+	Telegram_id   int       `db:"user_id"`
+	AccessUrl     string    `db:"key_value"`
+	Expire_months time.Time `db:"expires_at"`
 }
 
 func (r *Repository) CreateKey(params CreateKeyParams) error {
