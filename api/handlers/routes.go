@@ -15,5 +15,6 @@ func registerWithMiddleware(r *mux.Router, path string, handlerFunc http.Handler
 
 func Register(r *mux.Router, db *sqlx.DB, outlineAPIConfig configs.OutlineAPIConfig) {
 	handler := newService(db, outlineAPIConfig)
-	registerWithMiddleware(r, "/api/v1/accesskey", handler.CreateUser(), http.MethodPost)
+	registerWithMiddleware(r, "/api/v1/create_user", handler.CreateUser(), http.MethodPost)
+	registerWithMiddleware(r, "/api/v1/access_key", handler.CreateKey(), http.MethodPost)
 }
