@@ -55,9 +55,9 @@ func TestCreateKey(t *testing.T) {
 
 	// Try tested function
 	err := repo.CreateKey(repository.CreateKeyParams{
-		Telegram_id:   123,
-		AccessUrl:     "ss://asdfasdfhasdad",
-		Expire_months: current_time,
+		TelegramId: 123,
+		AccessUrl:  "ss://asdfasdfhasdad",
+		ExpiresAt:  current_time,
 	},
 	)
 
