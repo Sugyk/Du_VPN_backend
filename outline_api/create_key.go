@@ -10,9 +10,9 @@ import (
 	"net/http"
 )
 
+// This function will create a key for user
+// from the outline server
 func (o *OutlineAPI) CreateKey() (CreateKeyResponse, error) {
-	// This function will create a key for user
-	// from the outline server
 
 	// Allow self signed certificate on transport level
 	transport_level := http.Transport{
