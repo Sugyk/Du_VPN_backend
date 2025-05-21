@@ -14,7 +14,7 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 		if r.Header.Get("X-Auth-Token") != os.Getenv("AUTH_TOKEN") {
-			log.Println(r.Header.Get("X-Auth-Token"), os.Getenv("AUTH_TOKEN"))
+			log.Println("middleware: token is invalid", r.Header.Get("X-Auth-Token"))
 			http.Error(w, "Auth token is incorrect", http.StatusUnauthorized)
 			return
 		}
