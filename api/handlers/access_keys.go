@@ -9,19 +9,26 @@ import (
 	"github.com/sugyk/rest_vpn/repository"
 )
 
+// this handler create the key and add it to db with expires_at
+//
+//	201 - if creating is successfuls
+//	400 - if request body is invalid
+//	500 - if failed to create a key
 func (s *Service) CreateKey() http.HandlerFunc {
 	type request struct {
-		Telegram_id   int `json:"telegram_id"`
-		Expire_months int `json:"expire_months"`
+		TelegramId   int `json:"telegram_id"`
+		LiveTimeDays int `json:"livetime"`
 	}
 
 	type response struct {
-		ExpireAt string `json:"expire_at"`
-		KeyValue string `json:"access_key"`
+		ExpiresAt string `json:"expires_at"`
+		KeyValue  string `json:"access_key"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var body request
+
+		// 400
 		if err := getBody(r, &body); err != nil {
 			log.Println("error: request have invalid body:", err)
 			w.WriteHeader(http.StatusBadRequest)
@@ -29,14 +36,18 @@ func (s *Service) CreateKey() http.HandlerFunc {
 			return
 		}
 
-		expire_months := body.Expire_months
-		if expire_months == 0 {
-			log.Println("error: request have invalid body: expire_months is 0")
+		livetimeDays := body.LiveTimeDays
+
+		// 400
+		if livetimeDays <= 0 {
+			log.Println("error: request have invalid body: expire_months is <= 0")
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(`{"error": "request have invalid body"}`))
 			return
 		}
 		key_response, err := s.OutlineAPI.CreateKey()
+
+		// 500
 		if err != nil {
 			log.Println("error: failed to create key:", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -44,7 +55,7 @@ func (s *Service) CreateKey() http.HandlerFunc {
 			return
 		}
 
-		current_time := time.Now().AddDate(0, 0, 30*body.Expire_months)
+		current_time := time.Now().AddDate(0, 0, livetimeDays)
 		expires_at := time.Date(
 			current_time.Year(),
 			current_time.Month(),
@@ -56,11 +67,14 @@ func (s *Service) CreateKey() http.HandlerFunc {
 			current_time.Location(),
 		)
 
-		if err = s.Repo.CreateKey(repository.CreateKeyParams{
-			Telegram_id:   body.Telegram_id,
-			AccessUrl:     key_response.AccessUrl,
-			Expire_months: expires_at,
-		}); err != nil {
+		err = s.Repo.CreateKey(repository.CreateKeyParams{
+			TelegramId: body.TelegramId,
+			AccessUrl:  key_response.AccessUrl,
+			ExpiresAt:  expires_at,
+		})
+
+		// 500
+		if err != nil {
 			log.Println("error: failed to create key:", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(`{"error": "failed to create key"}`))
@@ -70,10 +84,12 @@ func (s *Service) CreateKey() http.HandlerFunc {
 
 		resp_bytes, err := json.Marshal(
 			response{
-				ExpireAt: expires_at.String(),
-				KeyValue: key_response.AccessUrl,
+				ExpiresAt: expires_at.String(),
+				KeyValue:  key_response.AccessUrl,
 			},
 		)
+
+		// 500
 		if err != nil {
 			log.Println("error: failed to create key:", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -82,6 +98,8 @@ func (s *Service) CreateKey() http.HandlerFunc {
 			// TODO: delete key from repo
 			return
 		}
+
+		// 201
 		w.WriteHeader(http.StatusCreated)
 		w.Write(resp_bytes)
 	}
