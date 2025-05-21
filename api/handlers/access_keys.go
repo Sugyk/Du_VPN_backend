@@ -11,7 +11,7 @@ import (
 
 // this handler create the key and add it to db with expires_at
 //
-//	201 - if creating is successfuls
+//	201 - if creating is successfull
 //	400 - if request body is invalid
 //	500 - if failed to create a key
 func (s *Service) CreateKey() http.HandlerFunc {
