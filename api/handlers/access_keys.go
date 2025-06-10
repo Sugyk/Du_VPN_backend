@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/sugyk/rest_vpn/repository"
 )
@@ -42,10 +43,11 @@ func (s *Service) CreateKey() http.HandlerFunc {
 			w.Write([]byte(`{"error": "failed to create key"}`))
 			return
 		}
-
+		outline_id, _ := strconv.Atoi(key_response.Id)
 		err = s.Repo.CreateKey(repository.CreateKeyParams{
 			TelegramId: body.TelegramId,
 			AccessUrl:  key_response.AccessUrl,
+			Outline_id: outline_id,
 		})
 
 		// 500

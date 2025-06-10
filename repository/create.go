@@ -29,14 +29,15 @@ func (r *Repository) CreateUser(params CreateUserParams) error {
 type CreateKeyParams struct {
 	TelegramId int    `db:"user_id"`
 	AccessUrl  string `db:"key_value"`
+	Outline_id int    `db:"outline_id"`
 }
 
 // Create the key for user
 func (r *Repository) CreateKey(params CreateKeyParams) error {
 
 	query := `
-	INSERT INTO "AccessKeys" (user_id, key_value)
-	VALUES (:user_id, :key_value)
+	INSERT INTO "AccessKeys" (user_id, key_value, outline_id)
+	VALUES (:user_id, :key_value, :outline_id)
 	`
 
 	_, err := r.db.NamedExec(query, params)

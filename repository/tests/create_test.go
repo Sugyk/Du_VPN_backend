@@ -17,8 +17,8 @@ var createUserQuery = `
 	`
 
 var createKeyQuery = `
-	INSERT INTO "AccessKeys" \(user_id, key_value\)
-	VALUES \(\?, \?\)
+	INSERT INTO "AccessKeys" \(user_id, key_value, outline_id\)
+	VALUES \(\?, \?, \?\)
 	`
 
 func TestCreateUser(t *testing.T) {
@@ -48,13 +48,14 @@ func TestCreateKey(t *testing.T) {
 
 	// Define mock execution
 	mock.ExpectExec(createKeyQuery).
-		WithArgs(123, "ss://asdfasdfhasdad").
+		WithArgs(123, "ss://asdfasdfhasdad", 1).
 		WillReturnResult(sqlmock.NewResult(1, 1)) // ID, RowsAffected
 
 	// Try tested function
 	err := repo.CreateKey(repository.CreateKeyParams{
 		TelegramId: 123,
 		AccessUrl:  "ss://asdfasdfhasdad",
+		Outline_id: 1,
 	},
 	)
 
