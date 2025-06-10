@@ -1,7 +1,5 @@
 package repository
 
-import "time"
-
 type CreateUserParams struct {
 	Telegram_id int  `db:"telegram_id"`
 	Is_admin    bool `db:"is_admin"`
@@ -29,17 +27,16 @@ func (r *Repository) CreateUser(params CreateUserParams) error {
 
 // params to repository handler CreateKey
 type CreateKeyParams struct {
-	TelegramId int       `db:"user_id"`
-	AccessUrl  string    `db:"key_value"`
-	ExpiresAt  time.Time `db:"expires_at"`
+	TelegramId int    `db:"user_id"`
+	AccessUrl  string `db:"key_value"`
 }
 
 // Create the key for user
 func (r *Repository) CreateKey(params CreateKeyParams) error {
 
 	query := `
-	INSERT INTO "AccessKeys" (user_id, key_value, expires_at)
-	VALUES (:user_id, :key_value, :expires_at)
+	INSERT INTO "AccessKeys" (user_id, key_value)
+	VALUES (:user_id, :key_value)
 	`
 
 	_, err := r.db.NamedExec(query, params)
