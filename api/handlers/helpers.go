@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 )
@@ -16,4 +17,9 @@ func getBody(r *http.Request, dest interface{}) error {
 		return err
 	}
 	return nil
+}
+
+func writeResponse(w http.ResponseWriter, statusCode int, body string) {
+	w.WriteHeader(statusCode)
+	w.Write(fmt.Append([]byte{}, body))
 }
