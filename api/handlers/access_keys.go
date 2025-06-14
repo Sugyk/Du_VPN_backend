@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/sugyk/rest_vpn/repository"
 )
@@ -78,5 +80,99 @@ func (s *Service) CreateKey() http.HandlerFunc {
 		// 201
 		w.WriteHeader(http.StatusCreated)
 		w.Write(resp_bytes)
+	}
+}
+
+// this handler return rows of access_keys which pass a filter params
+//
+//	200 - OK, return
+//	500 - error on server
+//	400 - bad filter params
+func (s *Service) GetAccessKeysList() http.HandlerFunc {
+	type AccessKey struct {
+		Id        int       `json:"id"`
+		KeyValue  string    `json:"key_value"`
+		UserId    int       `json:"user_id"`
+		OutlineId int       `json:"outline_id"`
+		CreatedAt time.Time `json:"created_at"`
+	}
+
+	type response struct {
+		AccessKeys []AccessKey `json:"access_keys"`
+	}
+
+	// this params can be used in query filters (e.g. /?id=2&user_id=2)
+	filtersTemplate := map[string]any{
+		"id":         0,
+		"user_id":    0,
+		"outline_id": 0,
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		urlParams := r.URL.Query()
+
+		for key, keyList := range urlParams {
+			if len(keyList) != 1 {
+				writeResponse(
+					w,
+					http.StatusBadRequest,
+					fmt.Sprintf(`{"error": "each filter parameter can be represented in query at most one time: %s"}`, key),
+				)
+				return
+			} else if paramType, ok := filtersTemplate[key]; ok {
+				switch paramType.(type) {
+				case int:
+					converted, err := strconv.Atoi(keyList[0])
+					if err != nil {
+						writeResponse(
+							w,
+							http.StatusBadRequest,
+							fmt.Sprintf(`{"error": "incorrect param %s: %s. %e"}`, key, keyList[0], err),
+						)
+						return
+					}
+					filtersTemplate[key] = converted
+				}
+			} else {
+				// return error
+				writeResponse(
+					w,
+					http.StatusBadRequest,
+					fmt.Sprintf(`{"error": "unexpected filter parameter: %s"}`, key),
+				)
+			}
+		}
+		entries, err := s.Repo.ListEntries(filtersTemplate)
+
+		// 500
+		if err != nil {
+			// return error of db
+			log.Printf(`error: db: %e`, err)
+			writeResponse(
+				w,
+				http.StatusInternalServerError,
+				`{"error": "internal error"}`,
+			)
+			return
+		}
+
+		// forming the response body
+		responseBody := response{
+			AccessKeys: []AccessKey{},
+		}
+		for _, v := range entries {
+			responseBody.AccessKeys = append(responseBody.AccessKeys, AccessKey(v))
+		}
+
+		// marshal the struct to []byte
+		bytesBody, _ := json.Marshal(responseBody)
+
+		// 200
+		// return the list of needed access_keys
+		writeResponse(
+			w,
+			http.StatusOK,
+			string(bytesBody),
+		)
 	}
 }
