@@ -101,15 +101,16 @@ func (s *Service) GetAccessKeysList() http.HandlerFunc {
 		AccessKeys []AccessKey `json:"access_keys"`
 	}
 
-	// this params can be used in query filters (e.g. /?id=2&user_id=2)
-	filtersTemplate := map[string]any{
-		"id":         0,
-		"user_id":    0,
-		"outline_id": 0,
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlParams := r.URL.Query()
+
+		// this params can be used in query filters (e.g. /?id=2&user_id=2)
+		// it is built per request, so filters of one request do not leak into another
+		filters := map[string]any{
+			"id":         0,
+			"user_id":    0,
+			"outline_id": 0,
+		}
 
 		for key, keyList := range urlParams {
 			if len(keyList) != 1 {
@@ -119,7 +120,7 @@ func (s *Service) GetAccessKeysList() http.HandlerFunc {
 					fmt.Sprintf(`{"error": "each filter parameter can be represented in query at most one time: %s"}`, key),
 				)
 				return
-			} else if paramType, ok := filtersTemplate[key]; ok {
+			} else if paramType, ok := filters[key]; ok {
 				switch paramType.(type) {
 				case int:
 					converted, err := strconv.Atoi(keyList[0])
@@ -131,7 +132,7 @@ func (s *Service) GetAccessKeysList() http.HandlerFunc {
 						)
 						return
 					}
-					filtersTemplate[key] = converted
+					filters[key] = converted
 				}
 			} else {
 				// return error
@@ -140,9 +141,10 @@ func (s *Service) GetAccessKeysList() http.HandlerFunc {
 					http.StatusBadRequest,
 					fmt.Sprintf(`{"error": "unexpected filter parameter: %s"}`, key),
 				)
+				return
 			}
 		}
-		entries, err := s.Repo.ListEntries(filtersTemplate)
+		entries, err := s.Repo.ListEntries(filters)
 
 		// 500
 		if err != nil {

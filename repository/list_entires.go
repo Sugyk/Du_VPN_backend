@@ -30,6 +30,11 @@ func (r *Repository) ListEntries(filterParams any) ([]AccessKey, error) {
 	AND (:outline_id = 0 OR outline_id = :outline_id)
 	`
 	rows, err := r.db.NamedQuery(query, filterParams)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
 	for rows.Next() {
 		var key AccessKey
 		if err := rows.StructScan(&key); err != nil {
@@ -38,5 +43,10 @@ func (r *Repository) ListEntries(filterParams any) ([]AccessKey, error) {
 		accessKeys = append(accessKeys, key)
 	}
 
-	return accessKeys, err
+	// an error can interrupt the iteration, so it must be checked after the loop
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return accessKeys, nil
 }

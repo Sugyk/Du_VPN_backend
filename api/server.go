@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -15,6 +17,9 @@ import (
 	"github.com/sugyk/rest_vpn/lib/configs"
 	"github.com/sugyk/rest_vpn/lib/database"
 )
+
+// how long the server waits for in-flight requests on shutdown
+const shutdownTimeout = 10 * time.Second
 
 type Server struct {
 	service *handlers.Service
@@ -72,11 +77,15 @@ func (s *Server) Run(port string) error {
 	case err := <-servChannel:
 		log.Fatalln("Error starting server", err)
 	case <-stopServer:
-		err := server.Shutdown(nil)
-		if err != nil {
-			return fmt.Errorf("Graceful shutdown did not complete: %e", err)
-		}
 		log.Println("Shuting down the server")
+
+		// give the in-flight requests a bounded time to complete
+		ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+		defer cancel()
+
+		if err := server.Shutdown(ctx); err != nil {
+			return fmt.Errorf("Graceful shutdown did not complete: %w", err)
+		}
 		wg.Wait()
 	}
 

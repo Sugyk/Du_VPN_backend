@@ -7,7 +7,7 @@ type DeleteKeyParams struct {
 // delete the AccessKey from repo by id
 func (r *Repository) DeleteKey(params DeleteKeyParams) error {
 	query := `
-	DELETE FROM "AccessKey"
+	DELETE FROM "AccessKeys"
 	WHERE id = :id
 	`
 

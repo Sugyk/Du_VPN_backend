@@ -44,7 +44,7 @@ func NewDbConfigs() DatabaseConfig {
 		Host:     viper.GetString("db.host"),
 		Port:     viper.GetString("db.port"),
 		User:     viper.GetString("db.username"),
-		Name:     viper.GetString("db.username"),
+		Name:     viper.GetString("db.dbname"),
 		SSLMode:  viper.GetString("db.sslmode"),
 		Password: os.Getenv("DB_PASSWORD"),
 	}
